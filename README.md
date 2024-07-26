@@ -143,7 +143,8 @@ end;
 ```SQL
 select concat('$', round(Avg(income),2))avg_income from marketing_data ; -- the average income of everyone included in the dataset is $52247.25
 select concat('$', min(Income))minincome,concat('$', max(income))maxincome from marketing_data; -- while the min income is $1730.00 and max is $666666.00
-
+```
+```SQL
 select age_group, 
 count(ID)frequency,
 concat('$', round(Avg(income),2))avg_income,    
@@ -152,7 +153,8 @@ concat('$', round(Avg(income),2))avg_income,
 from marketing_data
 group by age_group
 order by frequency desc;
-
+```
+```SQL
 select Education, 
 count(ID)frequency,
 concat('$', round(Avg(income),2))avg_income,
@@ -161,7 +163,8 @@ concat('$', round(Avg(income),2))avg_income,
 from marketing_data
 group by Education
 order by frequency desc;
-
+```
+```SQL
 select Marital_Status, 
 count(ID)frequency, 
 concat('$', round(Avg(income),2))avg_income,
@@ -170,7 +173,8 @@ concat('$', round(Avg(income),2))avg_income,
 from marketing_data
 group by Marital_Status
 order by frequency desc;
-
+```
+```SQL
 select Country, 
 count(ID)frequency,
 concat('$', round(Avg(income),2))avg_income,
@@ -179,7 +183,8 @@ concat('$', round(Avg(income),2))avg_income,
 from marketing_data
 group by Country
 order by frequency desc;
-
+```
+```SQL
 select age_group, Education,marital_status,country,
 count(ID)frequency,
 concat('$', round(Avg(income),2))avg_income,
@@ -188,26 +193,29 @@ concat('$', round(Avg(income),2))avg_income,
 from marketing_data
 group by  Education,marital_status,country
 order by frequency desc;
-
+```
+```SQL
 select country, 
 sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
 sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
 sum(case when Teenhome =1 then 1 else 0 end)teenhome1
 from marketing_data group by country;
-
+```
+```SQL
 select Education, 
 sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
  sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
 sum(case when Teenhome =1 then 1 else 0 end)teenhome1
 from marketing_data group by Education;
-
+```
+```SQL
 select Marital_Status, 
 sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
 sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
 sum(case when Teenhome =1 then 1 else 0 end)teenhome1
 from marketing_data group by Marital_Status;
 ```
- - Utilized common table expressions (CTEs) for more 
+## Utilized common table expressions (CTEs) for more 
 advanced data manipulation.
 ```SQL
 with Total_children as 
@@ -220,8 +228,81 @@ with Total_children as
 		group by  Education,marital_status,country
 		order by frequency desc)
 select *, (kidhome1+(kidhome2*2)+teenhome1)children from Total_children;
-
-
 ```
+### Customer Segmentation:
+ - segments of customers based on demographics
+ ```SQL
+update marketing_data
+set age_group = 
+case
+    when Year_Birth >= 2000 then 'Gen Z'
+    when Year_Birth between 1980 and 1999 then 'Millennials'
+    when Year_Birth between 1965 and 1979 then 'Gen X'         
+    when Year_Birth between 1946 and 1964 then 'Baby Boomers'
+    else 'Silent Generation'
+end;
+```
+ - segments of customers purchasing behavior
+```SQL
+alter table marketing_data
+add column Total_customer_spending int after MntGoldProds;
+
+update marketing_data
+set Total_customer_spending =
+       (MntWines + 
+       MntFruits + 
+       MntMeatProducts +  
+       MntFishProducts + 
+       MntSweetProducts + 
+       MntGoldProds) ;
+```
+- segments of customers responses to campaigns
+```SQL
+alter table marketing_data
+add column customer_purchase_frequency int after Numstorepurchases;
+
+update marketing_data
+set  customer_purchase_frequency =
+       (NumWebPurchases + NumCatalogPurchases +  -- customer purchase frequency was also derived fromm all if this
+       NumStorePurchases);
+```
+
+ - Identify top-performing segments based on total 
+spending
+```SQL
+select age_group,
+	concat('$',sum(MntWines + 
+       MntFruits + 
+       MntMeatProducts + 
+       MntFishProducts + 
+       MntSweetProducts + 
+       MntGoldProds))total_spending 
+from marketing_data
+		  group by age_group
+		  order by total_spending desc;
+```
+ - Identify top-performing segments based on frequency of purchases
+```SQL
+Select age_group, 
+       SUM(NumWebPurchases + NumCatalogPurchases + 
+       NumStorePurchases) total_purchases
+from marketing_data
+	group by age_group
+	order by total_purchases desc;
+```
+
+ - Identify top-performing segments based on  campaign responses.
+```SQL
+ select age_group, 
+       sum(AcceptedCmp1 + 
+       AcceptedCmp2 + 
+       AcceptedCmp3 + 
+       AcceptedCmp4 + 
+       AcceptedCmp5) total_responses
+from marketing_data
+		group by age_group
+		order by total_responses desc;
+```
+
 ## Aim of the Analysis
 The aim of the analysis is to reveal insight into the acceptance of product by their existing customer and potential customers and also to calculate their RFM analysis, which involve their segmentation and demographic data
