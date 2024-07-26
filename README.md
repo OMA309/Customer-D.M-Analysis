@@ -464,7 +464,7 @@ select *,
 	 ntile(5) over (order by frequency desc)freq_score,
 	ntile(5) over (order by monetary desc)mon_score
 	from RFM)
-         select age_group,recency,frequency,monetary,
+select age_group,recency,frequency,monetary,
          concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
 select age_group,recency,frequency,monetary,
 	case
@@ -476,8 +476,8 @@ select age_group,recency,frequency,monetary,
 	 END AS rfm_segment
 	 from RFM_seg;
 ```
+## Findings and Key Insight
 
 
  
-## Aim of the Analysis
-The aim of the analysis is to reveal insight into the acceptance of product by their existing customer and potential customers and also to calculate their RFM analysis, which involve their segmentation and demographic data
+
