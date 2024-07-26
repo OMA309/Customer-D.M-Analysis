@@ -261,7 +261,7 @@ alter table marketing_data
 add column customer_purchase_frequency int after Numstorepurchases;
 
 update marketing_data
-set  customer_purchase_frequency =
+set    customer_purchase_frequency =
        (NumWebPurchases + NumCatalogPurchases +  -- customer purchase frequency was also derived fromm all if this
        NumStorePurchases);
 ```
@@ -307,7 +307,7 @@ from marketing_data
  - Analyze the effectiveness of different marketing campaigns.
 ```SQL
 Select age_group, Marital_Status,Education,
-	sum(case when acceptedCmp3 = 1 then 1 else 0 end ) campaign3,
+    sum(case when acceptedCmp3 = 1 then 1 else 0 end ) campaign3,
     sum(case when acceptedCmp4 = 1 then 1 else 0 end ) campaign4,
     sum(case when acceptedCmp5 = 1 then 1 else 0 end ) campaign5,
     sum(case when acceptedCmp1 = 1 then 1 else 0 end ) campaign1,
@@ -328,7 +328,7 @@ select
  - Identify customers who have accepted multiple campaigns and analyze their behavior
 ```SQL
 select age_group, Marital_Status,
-concat('$',Income)income,Education,Country,(AcceptedCmp1 + 
+       concat('$',Income)income,Education,Country,(AcceptedCmp1 + 
        AcceptedCmp2 + 
        AcceptedCmp3 + 
        AcceptedCmp4 + 
@@ -346,17 +346,17 @@ from marketing_data
  For the Frequency and Monetary, we use the following to determinne that
 ```SQL
 select ID, Age_group,Recency,
-  (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
-concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts +  MntSweetProducts + MntGoldProds)) monetary from marketing_data;
+       (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+ concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts +  MntSweetProducts + MntGoldProds)) monetary from marketing_data;
 ```
 ### Customers Segmentation  into different RFM categories.
  -  calculate recency, frequency, and monetary value for each customer.
 ```SQL
 with RFM as 
 	( select ID,age_group, Recency,
-  (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
-       concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
-       MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+        (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+        concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
+        MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 select *,
 	ntile(5) over (order by recency asc)rec_score,
         ntile(5) over (order by frequency desc)freq_score,
@@ -366,7 +366,7 @@ from RFM ;
  - Perform an RFM analysis to identify high-value customers.
 ```SQL
 with combined_RFM as 
-		(  with RFM as ( select ID,age_group, Recency,
+		(with RFM as ( select ID,age_group, Recency,
 		(NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
        		concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
        		MntSweetProducts + MntGoldProds)) monetary from marketing_data)
@@ -378,29 +378,105 @@ from RFM)
 select age_group,recency,frequency,monetary,
 	concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM;
 ```
- - Segment customers into different RFM categories.*/
+ - Segment customers into different RFM categories
 ```SQL
 with RFM_seg as 
-				(with combined_RFM as (  with RFM as ( select ID,age_group,Recency,
-  (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+              (with combined_RFM as (with RFM as ( select ID,age_group,Recency,
+              (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
        concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
-       MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+              MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 select *,
-		ntile(5) over (order by recency asc)ref_score,
+        ntile(5) over (order by recency asc)ref_score,
         ntile(5) over (order by frequency desc)freq_score,
         ntile(5) over (order by monetary desc)mon_score
 from RFM)
+      select age_group,recency,frequency,monetary,
+      concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
 select age_group,recency,frequency,monetary,
-		concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
- select age_group,recency,frequency,monetary,
 case
-		when RFM_score = '555' then 'Champions'
+        when RFM_score = '555' then 'Champions'
         when RFM_score like '55%' then'Loyal Customers'
         when rfm_score like '5%' then 'Potential Loyalists'
         when rfm_score like '%5' then 'Big Spenders'
         else 'Others'
     END AS rfm_segment
     from RFM_seg;
+```
+##  Optimization and Indexing:
+### Optimize SQL queries for performance.
+To perform this, we had to create another table to mirror the existing table in order to Optimize SQL queries for performance.
+```SQL
+create table marketing_copi as
+			with RFM_seg as 
+			              (with combined_RFM as (with RFM as ( select ID,age_group,Recency,
+			              (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+			       concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
+			              MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+			select *,
+			        ntile(5) over (order by recency asc)ref_score,
+			        ntile(5) over (order by frequency desc)freq_score,
+			        ntile(5) over (order by monetary desc)mon_score
+			from RFM)
+			      select age_group,recency,frequency,monetary,
+			      concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
+			select age_group,recency,frequency,monetary,
+			case
+			        when RFM_score = '555' then 'Champions'
+			        when RFM_score like '55%' then'Loyal Customers'
+			        when rfm_score like '5%' then 'Potential Loyalists'
+			        when rfm_score like '%5' then 'Big Spenders'
+			        else 'Others'
+			    END AS rfm_segment
+			    from RFM_seg;
+   ```
+- Implement indexing strategies to speed up query execution.
+```SQL
+create index idx_ID_agegroup_RFM_score_rfm_segment on marketing_copi(ID,age_group,rfm_score,rfm_segment);
+create index idx_ID on marketing_copi(ID);
+create index idx_ID_RFM_score_rfm_segment on marketing_copi(ID);
+create index idx_RFM_score on marketing_copi(rfm_score);
+create index idx_rfm_segment on marketing_copi(rfm_segment);
+create index idx_ID_RFM_score_rfm_segment_agegroup on marketing_copi(ID,rfm_score,rfm_segment,age_group);
+create index idx_agegroup on marketing_copi(age_group);
+create index idx_age_group on marketing_data(age_group);
+create index idx_recency on marketing_copi(recency);
+create index idx_NumWebPurchases_NumCatalogPurchases_NumStorePurchases on marketing_copy(NumWebPurchases,NumCatalogPurchases,NumStorePurchases);
+```
+ - Analyze query execution plans to identify and resolve performance bottlenecks
+```SQL
+explain select  age_group, RFM_score, rfm_segment from marketing_copi;
+```
+```SQL
+explain
+   select age_group,recency,frequency,monetary,RFM_score,rfm_segment 
+   from marketing_copi
+   where recency < 30 and monetary > concat('$',100);
+```
+```SQL
+Explain
+with RFM_seg as 
+       (with combined_RFM as (with RFM as ( select ID,age_group,Recency,
+       (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+  concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
+         MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+select *,
+	  ntile(5) over (order by recency asc)ref_score,
+	 ntile(5) over (order by frequency desc)freq_score,
+	ntile(5) over (order by monetary desc)mon_score
+	from RFM)
+         select age_group,recency,frequency,monetary,
+         concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
+select age_group,recency,frequency,monetary,
+	case
+	 when RFM_score = '555' then 'Champions'
+	 when RFM_score like '55%' then'Loyal Customers'
+	 when rfm_score like '5%' then 'Potential Loyalists'
+	 when rfm_score like '%5' then 'Big Spenders'
+	else 'Others'
+	 END AS rfm_segment
+	 from RFM_seg;
+```
+
 
  
 ## Aim of the Analysis
