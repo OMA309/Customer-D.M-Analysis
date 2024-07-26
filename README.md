@@ -118,7 +118,7 @@ select
 case when (year( current_date())-year_birth)<=39 then '28-39'
     when (year( current_date())-year_birth)<=49 then '40-49'
     when (year( current_date())-year_birth)<=59 then '50-59'
-    when (year( current_date())-year_birth)<=69 then '60-69' -- this was imployed in other get the individul year into proper age-group
+    when (year( current_date())-year_birth)<=69 then '60-69' -- this was imployed in other get the individual year into proper age-group
     when (year( current_date())-year_birth)<=79 then '70-79'
     when (year( current_date())-year_birth)<=89 then '80-89'
     when (year( current_date())-year_birth)<=99 then '90-99'
@@ -128,21 +128,12 @@ case when (year( current_date())-year_birth)<=39 then '28-39'
     end as age_group
     from marketing_data;
 
-update marketing_data
-set age_group = 
-case
-    when Year_Birth >= 2000 then 'Gen Z'
-    when Year_Birth between 1980 and 1999 then 'Millennials'
-    when Year_Birth between 1965 and 1979 then 'Gen X'        -- having done the age grouping, it was later group into segments for a better labelling 
-    when Year_Birth between 1946 and 1964 then 'Baby Boomers'
-    else 'Silent Generation'
-end;
 ```
 ## 3. Advanced Querying:
  - summary statistics
 ```SQL
-select concat('$', round(Avg(income),2))avg_income from marketing_data ; -- the average income of everyone included in the dataset is $52247.25
-select concat('$', min(Income))minincome,concat('$', max(income))maxincome from marketing_data; -- while the min income is $1730.00 and max is $666666.00
+select concat('$', round(Avg(income),2))avg_income from marketing_data ;
+select concat('$', min(Income))minincome,concat('$', max(income))maxincome from marketing_data; 
 ```
 ```SQL
 select age_group, 
