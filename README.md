@@ -215,8 +215,7 @@ sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
 sum(case when Teenhome =1 then 1 else 0 end)teenhome1
 from marketing_data group by Marital_Status;
 ```
-## Utilized common table expressions (CTEs) for more 
-advanced data manipulation.
+
 ```SQL
 with Total_children as 
 		(select age_group, Education,marital_status,country,
@@ -304,5 +303,48 @@ from marketing_data
 		order by total_responses desc;
 ```
 
+### Marketing Campaign Analysis:
+ - Analyze the effectiveness of different marketing campaigns.
+```SQL
+Select age_group, Marital_Status,Education,
+	sum(case when acceptedCmp3 = 1 then 1 else 0 end ) campaign3,
+    sum(case when acceptedCmp4 = 1 then 1 else 0 end ) campaign4,
+    sum(case when acceptedCmp5 = 1 then 1 else 0 end ) campaign5,
+    sum(case when acceptedCmp1 = 1 then 1 else 0 end ) campaign1,
+    sum(case when acceptedCmp2 = 1 then 1 else 0 end ) campaign2
+from marketing_data
+group by age_group,Marital_Status,Education ;
+```
+ - Write queries to calculate the response rates for each campaign
+```SQL
+select 
+    sum(AcceptedCmp3) / count(*) as Campaign1_ResponseRate,
+    sum(AcceptedCmp4) / count(*) as Campaign2_ResponseRate, 
+    sum(AcceptedCmp5) / count(*) as Campaign3_ResponseRate,
+    sum(AcceptedCmp1) / count(*) as Campaign4_ResponseRate,
+    sum(AcceptedCmp2) / count(*) as Campaign5_ResponseRate
+	from marketing_data;
+```
+ - Identify customers who have accepted multiple campaigns and analyze their behavior
+```SQL
+select age_group, Marital_Status,
+concat('$',Income)income,Education,Country,(AcceptedCmp1 + 
+       AcceptedCmp2 + 
+       AcceptedCmp3 + 
+       AcceptedCmp4 + 
+       AcceptedCmp5) total_cmp_accpt
+from marketing_data
+	where (AcceptedCmp1 + 
+		   AcceptedCmp2 + 
+		   AcceptedCmp3 + 
+		   AcceptedCmp4 + 
+		   AcceptedCmp5) >1 
+	 order by Total_cmp_accpt desc;
+```
+## Utilized common table expressions (CTEs) for more advanced data manipulation.
+
+
+
+ 
 ## Aim of the Analysis
 The aim of the analysis is to reveal insight into the acceptance of product by their existing customer and potential customers and also to calculate their RFM analysis, which involve their segmentation and demographic data
