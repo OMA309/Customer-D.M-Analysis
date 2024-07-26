@@ -31,6 +31,8 @@ rename column ï»¿ID to ID;
 -- modify the income column from text to varchar/int
 update marketing_data
 set Income = replace(Income,'$','');
+alter table marketing_data
+    add column age_group varchar(20) after Year_birth;
 ```
 ## 2. Data Cleaning and Preparation:
  - Identify and handle missing or null values.
@@ -140,12 +142,86 @@ end;
  - summary statistics
 ```SQL
 select concat('$', round(Avg(income),2))avg_income from marketing_data ; -- the average income of everyone included in the dataset is $52247.25
-select concat('$', min(Income))minincome,concat('$', max(income))maxincome from marketing_data; -- while the min income is $1730.00 and max is $666666.00  
-   
- - Implement JOIN operations to combine data from multiple tables if 
-necessary.
- - Utilize subqueries and common table expressions (CTEs) for more 
-advanced data manipulation. 
+select concat('$', min(Income))minincome,concat('$', max(income))maxincome from marketing_data; -- while the min income is $1730.00 and max is $666666.00
 
+select age_group, 
+count(ID)frequency,
+concat('$', round(Avg(income),2))avg_income,    
+(select concat('$', min(Income)))minincome,
+(select concat('$', max(income)))maxincome
+from marketing_data
+group by age_group
+order by frequency desc;
+
+select Education, 
+count(ID)frequency,
+concat('$', round(Avg(income),2))avg_income,
+(select concat('$', min(Income)))minincome,
+(select concat('$', max(income)))maxincome
+from marketing_data
+group by Education
+order by frequency desc;
+
+select Marital_Status, 
+count(ID)frequency, 
+concat('$', round(Avg(income),2))avg_income,
+(select concat('$', min(Income)))minincome,
+(select concat('$', max(income)))maxincome
+from marketing_data
+group by Marital_Status
+order by frequency desc;
+
+select Country, 
+count(ID)frequency,
+concat('$', round(Avg(income),2))avg_income,
+(select concat('$', min(Income)))minincome,
+(select concat('$', max(income)))maxincome
+from marketing_data
+group by Country
+order by frequency desc;
+
+select age_group, Education,marital_status,country,
+count(ID)frequency,
+concat('$', round(Avg(income),2))avg_income,
+(select concat('$', min(Income)))minincome,   
+(select concat('$', max(income)))maxincome
+from marketing_data
+group by  Education,marital_status,country
+order by frequency desc;
+
+select country, 
+sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
+sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
+sum(case when Teenhome =1 then 1 else 0 end)teenhome1
+from marketing_data group by country;
+
+select Education, 
+sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
+ sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
+sum(case when Teenhome =1 then 1 else 0 end)teenhome1
+from marketing_data group by Education;
+
+select Marital_Status, 
+sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
+sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
+sum(case when Teenhome =1 then 1 else 0 end)teenhome1
+from marketing_data group by Marital_Status;
+```
+ - Utilized common table expressions (CTEs) for more 
+advanced data manipulation.
+```SQL
+with Total_children as 
+		(select age_group, Education,marital_status,country,
+		count(ID)frequency,
+		sum(case when kidhome = 1 then 1 else 0 end)kidhome1,
+		sum(case when kidhome = 2 then 1 else 0 end)kidhome2,
+		sum(case when Teenhome =1 then 1 else 0 end)teenhome1
+		from marketing_data
+		group by  Education,marital_status,country
+		order by frequency desc)
+select *, (kidhome1+(kidhome2*2)+teenhome1)children from Total_children;
+
+
+```
 ## Aim of the Analysis
 The aim of the analysis is to reveal insight into the acceptance of product by their existing customer and potential customers and also to calculate their RFM analysis, which involve their segmentation and demographic data
