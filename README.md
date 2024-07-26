@@ -342,8 +342,65 @@ from marketing_data
 	 order by Total_cmp_accpt desc;
 ```
 ## Utilized common table expressions (CTEs) for more advanced data manipulation.
-
-
+- (RFM) Analysis: Recency is already included in our table
+ For the Frequency and Monetary, we use the following to determinne that
+```SQL
+select ID, Age_group,Recency,
+  (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts +  MntSweetProducts + MntGoldProds)) monetary from marketing_data;
+```
+### Customers Segmentation  into different RFM categories.
+ -  calculate recency, frequency, and monetary value for each customer.
+```SQL
+with RFM as 
+	( select ID,age_group, Recency,
+  (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+       concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
+       MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+select *,
+	ntile(5) over (order by recency asc)rec_score,
+        ntile(5) over (order by frequency desc)freq_score,
+        ntile(5) over (order by monetary desc)mon_score
+from RFM ;
+```
+ - Perform an RFM analysis to identify high-value customers.
+```SQL
+with combined_RFM as 
+		(  with RFM as ( select ID,age_group, Recency,
+		(NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+       		concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
+       		MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+select *,
+	ntile(5) over (order by recency asc)ref_score,
+        ntile(5) over (order by frequency desc)freq_score,
+        ntile(5) over (order by monetary desc)mon_score
+from RFM)
+select age_group,recency,frequency,monetary,
+	concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM;
+```
+ - Segment customers into different RFM categories.*/
+```SQL
+with RFM_seg as 
+				(with combined_RFM as (  with RFM as ( select ID,age_group,Recency,
+  (NumWebPurchases + NumCatalogPurchases + NumStorePurchases) frequency,
+       concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
+       MntSweetProducts + MntGoldProds)) monetary from marketing_data)
+select *,
+		ntile(5) over (order by recency asc)ref_score,
+        ntile(5) over (order by frequency desc)freq_score,
+        ntile(5) over (order by monetary desc)mon_score
+from RFM)
+select age_group,recency,frequency,monetary,
+		concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
+ select age_group,recency,frequency,monetary,
+case
+		when RFM_score = '555' then 'Champions'
+        when RFM_score like '55%' then'Loyal Customers'
+        when rfm_score like '5%' then 'Potential Loyalists'
+        when rfm_score like '%5' then 'Big Spenders'
+        else 'Others'
+    END AS rfm_segment
+    from RFM_seg;
 
  
 ## Aim of the Analysis
