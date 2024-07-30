@@ -349,9 +349,9 @@ with RFM as
         concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
         MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 select *,
-	ntile(5) over (order by recency asc)rec_score,
-        ntile(5) over (order by frequency desc)freq_score,
-        ntile(5) over (order by monetary desc)mon_score
+	ntile(5) over (order by recency desc)rec_score,
+        ntile(5) over (order by frequency asc)freq_score,
+        ntile(5) over (order by monetary asc)mon_score
 from RFM ;
 ```
  - Perform an RFM analysis to identify high-value customers.
@@ -362,9 +362,9 @@ with combined_RFM as
        		concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
        		MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 select *,
-	ntile(5) over (order by recency asc)ref_score,
-        ntile(5) over (order by frequency desc)freq_score,
-        ntile(5) over (order by monetary desc)mon_score
+	ntile(5) over (order by recency desc)ref_score,
+        ntile(5) over (order by frequency asc)freq_score,
+        ntile(5) over (order by monetary asc)mon_score
 from RFM)
 select age_group,recency,frequency,monetary,
 	concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM;
@@ -377,9 +377,9 @@ with RFM_seg as
        concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
               MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 select *,
-        ntile(5) over (order by recency asc)ref_score,
-        ntile(5) over (order by frequency desc)freq_score,
-        ntile(5) over (order by monetary desc)mon_score
+        ntile(5) over (order by recency desc)ref_score,
+        ntile(5) over (order by frequency asc)freq_score,
+        ntile(5) over (order by monetary asc)mon_score
 from RFM)
       select age_group,recency,frequency,monetary,
       concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
@@ -404,9 +404,9 @@ create table marketing_copi as
 			       concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
 			              MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 			select *,
-			        ntile(5) over (order by recency asc)ref_score,
-			        ntile(5) over (order by frequency desc)freq_score,
-			        ntile(5) over (order by monetary desc)mon_score
+			        ntile(5) over (order by recency desc)ref_score,
+			        ntile(5) over (order by frequency asc)freq_score,
+			        ntile(5) over (order by monetary asc)mon_score
 			from RFM)
 			      select age_group,recency,frequency,monetary,
 			      concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
@@ -451,9 +451,9 @@ with RFM_seg as
   concat('$',(MntWines + MntFruits + MntMeatProducts + MntFishProducts + 
          MntSweetProducts + MntGoldProds)) monetary from marketing_data)
 select *,
-	  ntile(5) over (order by recency asc)ref_score,
-	 ntile(5) over (order by frequency desc)freq_score,
-	ntile(5) over (order by monetary desc)mon_score
+	  ntile(5) over (order by recency desc)ref_score,
+	 ntile(5) over (order by frequency asc)freq_score,
+	ntile(5) over (order by monetary asc)mon_score
 	from RFM)
 select age_group,recency,frequency,monetary,
          concat( ref_score,freq_score,mon_score)RFM_score from combined_RFM)
